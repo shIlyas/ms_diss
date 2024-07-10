@@ -1,33 +1,34 @@
+# flask_api/app.p
 from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from config import config
-
+from config import Config
 from dotenv import load_dotenv
+from flask_migrate import Migrate
 import os
-db = SQLAlchemy()
-migrate = Migrate() 
 
-load_dotenv()
+# Load environment variables based on FLASK_ENV
+if os.getenv('FLASK_ENV') == 'production':
+    load_dotenv('.env.prod')  # Load production environment variables
+else:
+    load_dotenv('.env')       # Load development environment variables
+
+db = SQLAlchemy()
+migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
- 
-    app.config.from_object(f"config.{os.getenv('FLASK_ENV').capitalize()}Config")
+    app.config.from_object(Config)
     db.init_app(app)
-
-    with app.app_context():
-        db.create_all()
-    from controllers.user_controller import user_bp
-    app.register_blueprint(user_bp, url_prefix='/api')
-    
     migrate.init_app(app, db)
-
+    
+    with app.app_context():
+        from controllers.user_controller import user_bp
+        app.register_blueprint(user_bp, url_prefix='/api')
+        db.create_all()
+    
     return app
-
-
-
 
 if __name__ == '__main__':
     app = create_app()
-    app.run()
+    app.run(debug=True)
