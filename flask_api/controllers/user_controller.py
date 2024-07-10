@@ -1,5 +1,10 @@
-from flask import Blueprint, request, jsonify,current_app
+
+from flask import Blueprint, request, jsonify
+from app import db,create_app
 from models.user import User
+import jwt
+from passlib.hash import pbkdf2_sha256 as sha256
+
 
 user_bp = Blueprint('user_bp', __name__)
 
@@ -11,7 +16,7 @@ def get_users():
 
 @user_bp.route('/create_users', methods=['POST'])
 def create_user():
-    db = current_app.db
+    #db = create_app.db
     data = request.get_json()
     hashed_password = sha256.hash(data['password'])
     new_user = User(username=data['username'], email=data['email'], password=hashed_password, role = data['role'])
