@@ -5,14 +5,14 @@ services:
     build:
       context: ./flask_api
       args:
-        FLASK_ENV: development
+        FLASK_ENV: production
     command: >
       sh -c "flask db upgrade &&
              flask run --host=0.0.0.0 --port=5000"
     ports:
       - "5000:5000"
     env_file:
-      - ./flask_api/.env  # Specify the local environment file
+      - ./flask_api/.env.prod # Specify the local environment file
     volumes:
       - ./flask_api:/app
     depends_on:
