@@ -20,9 +20,11 @@ services:
 
   db:
     image: postgres:latest
+    env_file:
+      - ./flask_api/.env.prod # Specify the local environment file for db as well
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_HOST: ${POSTGRES_HOST}
-      POSTGRES_PORT: 5432
+      POSTGRES_PORT: ${POSTGRES_PORT}
