@@ -1,9 +1,12 @@
 
 from flask import Blueprint, request, jsonify
-from app import db,create_app
+from app import db,logger,create_app
 from models.user import User
 import jwt
 from passlib.hash import pbkdf2_sha256 as sha256
+from datetime import datetime, timedelta 
+import os
+
 
 
 user_bp = Blueprint('user_bp', __name__)
@@ -21,6 +24,7 @@ def create_user():
     hashed_password = sha256.hash(data['password'])
     new_user = User(username=data['username'], email=data['email'], password=hashed_password, role = data['role'])
     try:
+        db.session.add(new_user)
         db.session.commit()
         return jsonify({'message': 'User created successfully'}), 201
     except Exception as e:
@@ -30,21 +34,30 @@ def create_user():
 
 @user_bp.route('/login', methods=['POST'])
 def login():
-    #db = create_app.db
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-    
+    try:
+        data = request.get_json(force=True)
+        logger.debug(f"Received login data: {data}")
 
-    user = User.query.filter_by(email=email).first()
+        if not data or not 'email' in data or not 'password' in data:
+            logger.error("Invalid input: Missing email or password")
+            return jsonify({'message': 'Invalid input: Missing email or password'}), 400
 
-    if user and sha256.verify(password, user.password):
-        token = jwt.encode({
-            'email': user.email,
-            'exp': datetime.utcnow() + timedelta(hours=1)
-        }, create_app.config['SECRET_KEY'], algorithm='HS256')
+        email = data['email']
+        password = data['password']
+        
+        user = User.query.filter_by(email=email).first()
+        
+        if user and sha256.verify(password, user.password):
+            token = jwt.encode({
+                'email': user.email,
+                'exp': datetime.utcnow() + timedelta(hours=1)
+            }, os.getenv('SECRET_KEY'), algorithm='HS256')
 
-        return jsonify({'token': token}), 200
-    else:
-        return jsonify({'message': 'Invalid username or password'}), 401
+            return jsonify({'token': token, 'role': user.role}), 200
+        else:
+            logger.warning("Invalid username or password")
+            return jsonify({'message': 'Invalid username or password'}), 401
+    except Exception as e:
+        logger.error(f"Error during login: {e}")
+        return jsonify({'message': 'An error occurred during login'}), 500
     
