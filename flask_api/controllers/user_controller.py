@@ -53,7 +53,7 @@ def login():
                 'exp': datetime.utcnow() + timedelta(hours=1)
             }, os.getenv('SECRET_KEY'), algorithm='HS256')
 
-            return jsonify({'token': token, 'role': user.role}), 200
+            return jsonify({'token': token, 'role': user.role, 'name': user.username}), 200
         else:
             logger.warning("Invalid username or password")
             return jsonify({'message': 'Invalid username or password'}), 401

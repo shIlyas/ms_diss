@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from flask_migrate import Migrate
 import os
 import logging
+from flask_cors import CORS
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -21,6 +22,8 @@ def create_app():
     app.config.from_object(f"config.{os.getenv('FLASK_ENV').capitalize()}Config")
     db.init_app(app)
     migrate.init_app(app, db)
+    # Enable CORS for the app
+    CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
     from controllers.user_controller import user_bp
     from controllers.assistant_scenario_controller import assistant_bp
     from controllers.rubric_question_controller import rubric_bp
@@ -35,4 +38,7 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
+    # Enable CORS for the app
+    #
+    # CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
     app.run(debug=os.getenv('FLASK_ENV') == 'development')

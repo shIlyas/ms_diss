@@ -1,24 +1,14 @@
-# Use an official Node runtime as a parent image
+# ./react_frontend/Dockerfile
 FROM node:14
 
-# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
-# Install dependencies
+COPY package.json ./
 RUN npm install
 
-# Copy the rest of the application code
-COPY . .
+COPY . ./
 
+# Set the NODE_ENV to development by default if not specified
+ENV NODE_ENV=development
 
-# Build the app
-RUN npm run build
-
-# Expose the port the app runs on
-EXPOSE 3000
-
-# Start the app
 CMD ["npm", "start"]
