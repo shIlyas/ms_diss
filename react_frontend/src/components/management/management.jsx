@@ -1,24 +1,56 @@
-import React, { useReducer, useState } from 'react';
+import React, { useReducer, useState, useEffect } from 'react';
 import {
-  Box, Card, CardContent, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button,
-  TextField, IconButton, FormControl, InputLabel, Select, MenuItem, Chip
+  Box,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  IconButton,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Chip,
+  Switch,
+  Typography,
+  Tooltip,
+  Avatar,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
-import { v4 as uuidv4 } from 'uuid'; // For generating unique IDs
-import './management.css'; // Import the CSS file
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import PersonIcon from '@mui/icons-material/Person';
+import CancelIcon from '@mui/icons-material/Cancel';
+import { DataGrid } from '@mui/x-data-grid';
+import { post, put, get, del } from '../../services/apiService'; // Ensure the correct path
+import { showSnackbar } from '../../features/snackbarSlice';
+import { useDispatch } from 'react-redux';
+import './management.css'; // Ensure the CSS file path is correct
 
+
+ 
 const initialState = {
   id: '',
-  name: '',
+  openid: '',
+  scenario_text: '',
   role: '',
-  description: '',
+  additional_instructions: '',
   enable: true,
   rubrics: [],
   tags: [],
 };
 
-const roles = ['Toddler', 'Boy', 'Girl', 'Adult Man', 'Adult Women', 'Elderly Man', 'Elderly Women']; // Add more roles as needed
+const roles = [
+  'Toddler',
+  'Boy',
+  'Girl',
+  'Adult Man',
+  'Adult Woman',
+  'Elderly Man',
+  'Elderly Woman',
+]; // Add more roles as needed
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -27,19 +59,27 @@ const reducer = (state, action) => {
     case 'SET_ID':
       return { ...state, id: action.payload };
     case 'SET_NAME':
-      return { ...state, name: action.payload };
+      return { ...state, scenario_text: action.payload };
     case 'SET_ROLE':
       return { ...state, role: action.payload };
     case 'SET_DESCRIPTION':
-      return { ...state, description: action.payload };
+      return { ...state, additional_instructions: action.payload };
+    case 'SET_OPENID':
+      return { ...state, openid: action.payload };
     case 'ADD_RUBRIC':
-      return { ...state, rubrics: [...state.rubrics, { id: uuidv4(), question: action.payload }] };
+      return { ...state, rubrics: [...state.rubrics, action.payload] };
     case 'REMOVE_RUBRIC':
-      return { ...state, rubrics: state.rubrics.filter(rubric => rubric.id !== action.payload) };
+      return {
+        ...state,
+        rubrics: state.rubrics.filter((rubric) => rubric !== action.payload),
+      };
     case 'ADD_TAG':
-      return { ...state, tags: [...state.tags, { id: uuidv4(), tag: action.payload }] };
+      return { ...state, tags: [...state.tags, action.payload] };
     case 'REMOVE_TAG':
-      return { ...state, tags: state.tags.filter(tag => tag.id !== action.payload) };
+      return {
+        ...state,
+        tags: state.tags.filter((tag) => tag !== action.payload),
+      };
     case 'RESET_FORM':
       return { ...initialState, id: '' }; // Ensure a new id is generated each time the form is reset
     default:
@@ -48,13 +88,124 @@ const reducer = (state, action) => {
 };
 
 const Management = () => {
+  const columns = [
+    {
+      field: 'scenario_text',
+      headerName: 'Scenrio Name',
+      flex: 2, // 20% relative share
+      filterable: true, // Enable filtering (search) only on this column
+      renderCell: (params) => (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Avatar>
+            <PersonIcon />
+          </Avatar>
+          {params.value}
+        </Box>
+      ),
+    },
+    {
+      field: 'additional_instructions',
+      headerName: 'Instructions Given',
+      flex: 4, // 60% relative share
+      filterable: false, // Disable filtering (search)
+      renderCell: (params) => (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {params.value}
+        </Box>
+      ),
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      sortable: false,
+      filterable: false, // Disable filtering (search)
+      resizable: false,
+      flex: 1, // 10% relative share
+      renderCell: (params) => (
+        <>
+          <IconButton onClick={() => handleEdit(params.row.id)}>
+            <EditIcon />
+          </IconButton>
+          <IconButton onClick={() => handleDelete(params.row.id)}>
+            <DeleteIcon />
+          </IconButton>
+          <Switch
+          checked={params.value}
+          onChange={() => handleToggle(params.row.id)}
+          color="primary"
+        />
+        </>
+      ),
+    }
+  ];
+  
   const [state, dispatch] = useReducer(reducer, initialState);
   const [open, setOpen] = useState(false);
   const [newQuestion, setNewQuestion] = useState('');
   const [newTag, setNewTag] = useState('');
+  const dispatch_global = useDispatch(); // Use Redux dispatch
+  const [assistants, setAssistants] = useState([]);
+
+  useEffect(() => {
+    fetchAssistants();
+  }, []);
+
+  const fetchAssistants = async () => {
+    try {
+      const response = await get('/scenarios');
+      setAssistants(response.data);
+    } catch (error) {
+      console.error('Error fetching assistants:', error);
+      dispatch_global(
+        showSnackbar({ message: 'Failed to fetch assistants', severity: 'error' })
+      );
+    }
+  };
 
   const handleClickOpen = () => {
     setOpen(true);
+  };
+
+  const handleEdit = (id) => {
+    const assistant = assistants.find((a) => a.id === id);
+    if (assistant) {
+      dispatch({ type: 'Set_All', payload: assistant });
+      setOpen(true);
+    }
+  };
+
+  const handleToggle = async (id) => {
+    const assistant = assistants.find((a) => a.id === id);
+    if (assistant) {
+      const endpoint = assistant.enable ? `/scenarios/${id}/disable` : `/scenarios/${id}/enable`;
+      try {
+        await put(endpoint);
+        dispatch_global(
+          showSnackbar({ message: 'Assistant updated successfully', severity: 'success' })
+        );
+        fetchAssistants(); // Fetch updated list of assistants
+      } catch (error) {
+        console.error('Error toggling assistant:', error);
+        dispatch_global(
+          showSnackbar({ message: 'Failed to update assistant', severity: 'error' })
+        );
+      }
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await del(`/scenarios/${id}`); // Perform a hard delete
+      dispatch_global(
+        showSnackbar({ message: 'Assistant deleted successfully', severity: 'success' })
+      );
+      fetchAssistants(); // Fetch updated list of assistants
+    } catch (error) {
+      console.error('Error deleting assistant:', error);
+      dispatch_global(
+        showSnackbar({ message: 'Failed to delete assistant', severity: 'error' })
+      );
+    }
   };
 
   const handleClose = () => {
@@ -64,63 +215,93 @@ const Management = () => {
     dispatch({ type: 'RESET_FORM' });
   };
 
-  const handleAddQuestion = () => {
-    if (newQuestion.trim() !== '') {
+  const handleAddQuestion = (e) => {
+    if (e.key === 'Enter' && newQuestion.trim() !== '') {
       dispatch({ type: 'ADD_RUBRIC', payload: newQuestion });
       setNewQuestion('');
     }
   };
 
-  const handleAddTag = () => {
-    if (newTag.trim() !== '') {
+  const handleAddTag = (e) => {
+    if (e.key === 'Enter' && newTag.trim() !== '') {
       dispatch({ type: 'ADD_TAG', payload: newTag });
       setNewTag('');
     }
   };
 
-  const handleSubmit = () => {
-    // Submit form data to API or state management
-    console.log(JSON.stringify(state, null, 2));
+  const handleSubmit = async () => {
+    const payload = {
+      id: state.id,
+      scenario_text: state.scenario_text,
+      role: state.role,
+      additional_instructions: state.additional_instructions,
+      enable: state.enable,
+      rubrics: state.rubrics,
+      tags: state.tags,
+    };
 
-    // handleClose();
+    try {
+      if (state.id) {
+        await put(`/scenarios/${state.id}`, payload);
+      } else {
+        await post('/scenarios', payload);
+      }
+      dispatch_global(showSnackbar({ message: 'Task done successfully', severity: 'success' }));
+      handleClose();
+      fetchAssistants(); // Fetch updated list of assistants
+    } catch (error) {
+      dispatch_global(
+        showSnackbar({ message: 'Something went wrong, please try again', severity: 'error' })
+      );
+      console.error('Error submitting form:', error);
+    }
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: '100%', gap: 2 }}>
-      <Box className="management-box">
-        <Card className="management-card" onClick={handleClickOpen}>
-          <CardContent>
-            <AddIcon className="management-add-icon" />
-            <Typography variant="h5" component="div" gutterBottom>
-              Add Assistant
-            </Typography>
-          </CardContent>
-        </Card>
+    <Box sx={{ padding: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4">Assistants Management</Typography>
+        <Tooltip title="Add Assistant">
+          <IconButton color="primary" onClick={handleClickOpen}>
+            <AddIcon />
+          </IconButton>
+        </Tooltip>
       </Box>
-
+      <Box sx={{ height: '300px', width: '100%' }}>
+      <DataGrid
+        autoHeight
+        rows={assistants}
+        columns={columns} // Pass the columns here
+        pageSize={10}
+        rowsPerPageOptions={[5, 10, 20]}
+        getRowId={(row) => row.id}
+        disableColumnMenu 
+        disableSelectionOnClick
+      />
+    </Box>
       {/* Dialog for adding/editing assistants */}
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle>Add/Edit Assistant</DialogTitle>
+        <DialogTitle>{state?.id ? 'Edit Assistant' : 'Add Assistant'}</DialogTitle>
         <DialogContent>
           <form className="management-form">
             <TextField
               margin="dense"
-              label="Name"
+              label="Scenario Name"
               type="text"
               fullWidth
               variant="outlined"
-              value={state.name}
+              value={state.scenario_text}
               onChange={(e) => dispatch({ type: 'SET_NAME', payload: e.target.value })}
             />
             <TextField
               margin="dense"
-              label="Description"
+              label="Instructions"
               type="text"
               fullWidth
               variant="outlined"
               multiline
               rows={4}
-              value={state.description}
+              value={state.additional_instructions}
               onChange={(e) => dispatch({ type: 'SET_DESCRIPTION', payload: e.target.value })}
             />
             <FormControl margin="dense" fullWidth variant="outlined">
@@ -139,59 +320,53 @@ const Management = () => {
             </FormControl>
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1">Rubrics</Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {state.rubrics.map((rubric) => (
+              <Box className="scrollable-box">
+                {state.rubrics.map((rubric, index) => (
                   <Chip
-                    key={rubric.id}
-                    label={rubric.question}
-                    onDelete={() => dispatch({ type: 'REMOVE_RUBRIC', payload: rubric.id })}
+                    key={index}
+                    label={rubric}
+                    onDelete={() => dispatch({ type: 'REMOVE_RUBRIC', payload: rubric })}
                     color="primary"
-                    deleteIcon={<RemoveIcon />}
+                    deleteIcon={<CancelIcon />}
                   />
                 ))}
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-                <TextField
-                  margin="dense"
-                  label="New Question"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={newQuestion}
-                  onChange={(e) => setNewQuestion(e.target.value)}
-                />
-                <IconButton onClick={handleAddQuestion}>
-                  <AddIcon />
-                </IconButton>
-              </Box>
+              <TextField
+                margin="dense"
+                label="New Question"
+                type="text"
+                fullWidth
+                variant="outlined"
+                value={newQuestion}
+                onChange={(e) => setNewQuestion(e.target.value)}
+                onKeyDown={handleAddQuestion}
+                placeholder="Press Enter to add"
+              />
             </Box>
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1">Tags</Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {state.tags.map((tag) => (
+              <Box className="scrollable-box">
+                {state.tags.map((tag, index) => (
                   <Chip
-                    key={tag.id}
-                    label={tag.tag}
-                    onDelete={() => dispatch({ type: 'REMOVE_TAG', payload: tag.id })}
+                    key={index}
+                    label={tag}
+                    onDelete={() => dispatch({ type: 'REMOVE_TAG', payload: tag })}
                     color="primary"
-                    deleteIcon={<RemoveIcon />}
+                    deleteIcon={<CancelIcon />}
                   />
                 ))}
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-                <TextField
-                  margin="dense"
-                  label="New Tag"
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                />
-                <IconButton onClick={handleAddTag}>
-                  <AddIcon />
-                </IconButton>
-              </Box>
+              <TextField
+                margin="dense"
+                label="New Tag"
+                type="text"
+                fullWidth
+                variant="outlined"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyDown={handleAddTag}
+                placeholder="Press Enter to add"
+              />
             </Box>
           </form>
         </DialogContent>

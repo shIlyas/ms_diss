@@ -1,6 +1,8 @@
 import axios from 'axios';
 import store from '../store'; // Adjust the path to your Redux store
 import { createBrowserHistory } from 'history';
+import { logout } from '../features/authSlice';
+import { showSnackbar } from '../features/snackbarSlice';
 
 const API_BASE_URL = 'http://127.0.0.1:5000/api';
 const history = createBrowserHistory();
@@ -35,6 +37,8 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       // Redirect to login page
+      store.dispatch(logout());
+      store.dispatch(showSnackbar({ message: 'Unauthorized access. Please login again.', severity: 'error' }));
       history.push('/login'); // Adjust the path to your login page
     }
     return Promise.reject(error);

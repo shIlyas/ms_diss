@@ -21,12 +21,11 @@ def add_rubric_question(current_user, scenario_id):
     new_question = RubricQuestion(question=question_text, scenario_id=scenario_id)
     try:
         db.session.add(new_question)
-        db.session.commit()
         return jsonify({'message': 'Rubric question added successfully'}), 201
     except Exception as e:
-        db.session.rollback()
         logger.error(f"Failed to add rubric question: {e}")
-        return jsonify({'message': f'Failed to add rubric question: {str(e)}'})
+        return jsonify({'message': f'Failed to add rubric question: {str(e)}'}), 500
+
 @rubric_bp.route('/scenarios/<int:scenario_id>/rubric_questions', methods=['GET'])
 @token_required
 def get_rubric_questions(current_user, scenario_id):
@@ -52,10 +51,8 @@ def edit_rubric_question(current_user, question_id):
 
     try:
         question.question = question_text
-        db.session.commit()
         return jsonify({'message': 'Rubric question updated successfully'}), 200
     except Exception as e:
-        db.session.rollback()
         logger.error(f"Failed to update rubric question: {e}")
         return jsonify({'message': f'Failed to update rubric question: {str(e)}'}), 500
 
@@ -68,9 +65,7 @@ def delete_rubric_question(current_user, question_id):
 
     try:
         db.session.delete(question)
-        db.session.commit()
         return jsonify({'message': 'Rubric question deleted successfully'}), 200
     except Exception as e:
-        db.session.rollback()
         logger.error(f"Failed to delete rubric question: {e}")
         return jsonify({'message': f'Failed to delete rubric question: {str(e)}'}), 500

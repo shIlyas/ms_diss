@@ -33,4 +33,15 @@
     display: flex;
     flex-direction: column;
   }
-  
+  .scrollable-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px; /* Adjust the gap between chips */
+    border-radius: 8px; /* Curve the border corners */
+    max-height: calc(2 * 32px + 3 * 8px); 
+    border: 1px solid rgb(16, 16, 137); /* Add blue border */
+   /* max-height: calc(4 * 32px + 3 * 8px); /* Limit to 4 lines with assumed chip height and gap */
+    overflow-y: auto; /* Enable vertical scrolling */
+    padding: 8px; /* Optional: Add padding inside the box */
+    box-sizing: border-box; /* Ensure padding is included in the total width and height */
+  }

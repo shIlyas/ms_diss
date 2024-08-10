@@ -7,10 +7,12 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Home from './components/Home';
 import HomeDefault from './components/HomeDefault'
 import Management from './components/management/management'
-
+import SnackbarComponent from './components/SnackBarComponent';
+import ChatPage from './components/chat/chat';
 const App = () => {
   return (
     <Provider store={store}>
+      <SnackbarComponent />
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -24,6 +26,7 @@ const App = () => {
           >
             <Route index element={<HomeDefault />} />
             <Route path="manage" element={<Management />} />
+            <Route path="talk" element={<ChatPage />} />
           </Route>
           <Route path="/" element={<Navigate to="/home" />} />
         </Routes>
