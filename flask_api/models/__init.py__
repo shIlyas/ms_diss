@@ -1,10 +1,11 @@
 from ..app import db
 from .user import User
-from .post import Post
+from .scenarios import  AssistantScenario
 
 __all__ = [
     'db',
     'User',
-    'Post',
+    'AssistantScenario'
     # Add other model names here
+    
 ]
