@@ -39,7 +39,13 @@ const initialState = {
   additional_instructions: '',
   enable: true,
   rubrics: [],
-  tags: [],
+  tags: [
+    "showing empathy",
+    "reassuring the patient",
+    "demonstrating professionalism",
+    "showing supportive attitude",
+    "encouraging"
+],
 };
 
 const roles = [
@@ -96,7 +102,7 @@ const Management = () => {
       filterable: true, // Enable filtering (search) only on this column
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Avatar>
+          <Avatar alt="User Avatar" src={`${process.env.PUBLIC_URL}/avatars/${params.row.role}.webp`}>
             <PersonIcon />
           </Avatar>
           {params.value}
@@ -169,6 +175,7 @@ const Management = () => {
   const handleEdit = (id) => {
     const assistant = assistants.find((a) => a.id === id);
     if (assistant) {
+    
       dispatch({ type: 'Set_All', payload: assistant });
       setOpen(true);
     }
