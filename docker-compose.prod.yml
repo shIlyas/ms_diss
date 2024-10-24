@@ -32,6 +32,8 @@ services:
       context: ./react_frontend
     ports:
       - "3000:3000"
+    command: >
+      sh -c "npm run build"
     environment:
       - NODE_ENV=production
     volumes:
