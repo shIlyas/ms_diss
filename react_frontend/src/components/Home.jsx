@@ -26,7 +26,7 @@ const HomeComponent = () => {
     };
 
     return (
-        <Box sx={{ flexGrow: 1 }}>
+        <Box sx={{ flexGrow: 1, height: '30vh' }}>
             <AppBar position="static">
                 <Toolbar sx={{ justifyContent: 'space-between' }}>
                     <Typography variant="h6" component="div">
@@ -58,7 +58,7 @@ const HomeComponent = () => {
                     </div>
                 </Toolbar>
             </AppBar>
-            <Box sx={{ padding: 2, minHeight: 'calc(100vh - 64px)' }}>
+            <Box sx={{ padding: 0, minHeight: 'calc(100vh - 64px)'}}>
                 <Outlet />
             </Box>
         </Box>

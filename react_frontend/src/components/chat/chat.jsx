@@ -1,49 +1,60 @@
 // ChatPage.jsx
-
-import React, { useState } from 'react';
+import React, { useReducer, useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
 import AssistantList from './assistantList'; // Ensure correct casing for imports
 import ChatWindow from './chat_window'; // Ensure correct casing for imports
-
-const assistants = [
-  { id: 1, name: 'Assistant 1' },
-  { id: 2, name: 'Assistant 2' },
-  { id: 3, name: 'Assistant 3' },
-  { id: 4, name: 'Assistant 4' },
-  { id: 5, name: 'Assistant 5' },
-  { id: 6, name: 'Assistant 6' },
-  { id: 7, name: 'Assistant 7' },
-  { id: 8, name: 'Assistant 8' },
-  { id: 9, name: 'Assistant 9' },
-  { id: 10, name: 'Assistant 10' },
-  { id: 11, name: 'Assistant 11' },
-  { id: 12, name: 'Assistant 12' },
-  { id: 13, name: 'Assistant 13' },
-  { id: 14, name: 'Assistant 14' },
-  { id: 15, name: 'Assistant 15' }
-];
+import { post, put, get, del } from '../../services/apiService'; 
+import { useDispatch } from 'react-redux';
+import { showSnackbar } from '../../features/snackbarSlice';
 
 const ChatPage = () => {
-  const [selectedThreadId, setSelectedThreadId] = useState(null);
+  const dispatch_global = useDispatch(); // Use Redux dispatch
+  const [selectedAssistantId, setSelectedAssistantId] = useState(null);
+  const [selectedAssistantName, setSelectedAssistantName] = useState(null);
+  const [selectedAssistantRole, setSelectedAssistantRole] = useState(null);
+  const [assistants, setAssistants] = useState([]);
 
-  const handleAssistantSelected = (id) => {
-    setSelectedThreadId(id);
+  useEffect(() => {
+    fetchAssistants();
+  }, []);
+
+  const fetchAssistants = async () => {
+    try {
+      const response = await get('/scenarios');
+      setAssistants(response.data);
+    } catch (error) {
+      console.error('Error fetching assistants:', error);
+      dispatch_global(
+        showSnackbar({ message: 'Failed to fetch assistants', severity: 'error' })
+      );
+    }
   };
+
+  const handleAssistantSelected = (id,name,role, tags) => {
+    setSelectedAssistantId(id);
+    setSelectedAssistantName(name);
+    setSelectedAssistantRole(role);
+    
+  };
+
+
 
   return (
     <Box
       sx={{
         display: 'flex',
-        height: '100vh',
-        width: '100vw',
+        height: '90vh',
+        width: '100%',
         bgcolor: '#e5ddd5',
+        flexDirection: 'row'
       }}
     >
       <Box
         sx={{
-          width: 360,
+          width: '30vw',
+          maxWidth: '30vw',
           bgcolor: '#ffffff',
-          boxShadow: 1,
+          boxShadow: 0,
           display: 'flex',
           flexDirection: 'column',
           borderRight: '1px solid #ddd',
@@ -52,10 +63,12 @@ const ChatPage = () => {
         }}
       >
         <Typography variant="h6" sx={{ p: 2, borderBottom: '1px solid #ddd' }}>
-          Assistants
+          Scenarios
         </Typography>
+    
         <AssistantList
           assistants={assistants}
+          selectedAssistantId={selectedAssistantId}
           onAssistantSelected={handleAssistantSelected}
         />
       </Box>
@@ -64,9 +77,15 @@ const ChatPage = () => {
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
+          width: '70vw',
+          height: '70vh'
+          
         }}
       >
-        <ChatWindow threadId={selectedThreadId} />
+        <ChatWindow selectedAssistantID={selectedAssistantId}
+                    scenarioName = {selectedAssistantName} 
+                    scenarioRole = {selectedAssistantRole}
+                    />
       </Box>
     </Box>
   );

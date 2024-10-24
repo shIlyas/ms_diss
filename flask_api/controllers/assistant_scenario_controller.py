@@ -128,7 +128,10 @@ def create_scenario(current_user):
     new_scenario = None
 
     # Step 1: Create OpenAI Assistant
-    openid, error, status_code = create_openai_assistant( data['scenario_text'],  data['additional_instructions'], openai.model)
+    
+    #scenario_text = f"You have to act as a {data['scenario_text']}. You must always act as a patient persona throughout the entire conversation and be a chatty with doctor add your input in moving the conversation forward like by asking questions. The target is for the medical student to act as a doctor, and you as a patient with the mentioned instructions/profile, so the skills of a doctor can be evaluated. Do not act as anything else, and keep your answers precise. Donot throw all of the information provided further in details at once as we expect doctor to ask specific questions"
+    scenario_text = f"You have to act as a {data['scenario_text']}. You must always act as a patient persona throughout the entire conversation and be a chatty with doctor add your input in moving the conversation forward like by asking questions. The target is for the medical student to act as a doctor, and you as a patient with the mentioned instructions/profile, so the skills of a doctor can be evaluated. Do not act as anything else, and keep your answers precise and occasionally add questions. Donot throw all of the information provided further in details at once as we expect doctor to ask specific questions"
+    openid, error, status_code = create_openai_assistant( data['scenario_text'], scenario_text+ ' '+ data['additional_instructions'], openai.model)
     if error:
         return jsonify({'message': 'Failed to create assistant with OpenAI', 'details': error}), status_code
 
@@ -162,7 +165,9 @@ def update_scenario(current_user, scenario_id):
             return jsonify({'message': 'Failed to delete existing OpenAI assistant'}), 500
 
     # Step 2: Create a new OpenAI Assistant
-    openid, error, status_code = create_openai_assistant(data['scenario_text'],  data['additional_instructions'], openai.model)
+    scenario_text = f"You have to act as a {data['scenario_text']}. You must always act as a patient persona throughout the entire conversation. The target is for the medical student to act as a doctor, and you as a patient with the mentioned instructions/profile, so the skills of a doctor can be evaluated. Do not act as anything else, and keep your answers precise. Donot throw all of the information provided further in details at once as we expect doctor to ask specific questions"
+    scenario_text = f"You have to act as a {data['scenario_text']}. You must always act as a patient persona throughout the entire conversation and be a chatty with doctor add your input in moving the conversation forward like by asking questions. The target is for the medical student to act as a doctor, and you as a patient with the mentioned instructions/profile, so the skills of a doctor can be evaluated. Do not act as anything else, and keep your answers precise and occasionally add questions. Donot throw all of the information provided further in details at once as we expect doctor to ask specific questions"
+    openid, error, status_code = create_openai_assistant( data['scenario_text'], scenario_text+ ' '+ data['additional_instructions'], openai.model)
     if error:
         return jsonify({'message': 'Failed to create new assistant with OpenAI', 'details': error}), status_code
 
@@ -172,7 +177,7 @@ def update_scenario(current_user, scenario_id):
     scenario.enable = data.get('enable', True)
     scenario.role = data.get('role')
     scenario.openid = openid
-
+    
     try:
         db.session.commit()
     except Exception as e:
