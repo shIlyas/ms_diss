@@ -4,7 +4,7 @@ import { createBrowserHistory } from 'history';
 import { logout } from '../features/authSlice';
 import { showSnackbar } from '../features/snackbarSlice';
 
-const API_BASE_URL = process.env.REACT_APP_API_ADDRESS;
+const API_BASE_URL = 'http://16.171.173.218/:5000/api';
 const history = createBrowserHistory();
 
 const apiClient = axios.create({
