@@ -1,14 +1,22 @@
-# ./react_frontend/Dockerfile
-FROM node:14
+# Stage 1: Build the React app
+FROM node:14 AS build
 
 WORKDIR /app
 
 COPY package.json ./
 RUN npm install
 
-COPY . ./
+COPY . .
+RUN npm run build
 
-# Set the NODE_ENV to development by default if not specified
-ENV NODE_ENV=development
+# Stage 2: Serve the React app with NGINX
+FROM nginx:alpine
 
-CMD ["npm", "start"]
+# Copy the build files from the previous stage to the NGINX HTML directory
+COPY --from=build /app/build /usr/share/nginx/html
+
+# Expose port 80 for web traffic
+EXPOSE 80
+
+# Run NGINX in the foreground
+CMD ["nginx", "-g", "daemon off;"]
