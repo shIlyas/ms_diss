@@ -23,7 +23,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     # Enable CORS for the app
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+    CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "http://16.171.173.218/"]}})
     from controllers.user_controller import user_bp
     from controllers.assistant_scenario_controller import assistant_bp
     from controllers.rubric_question_controller import rubric_bp
