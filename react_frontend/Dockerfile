@@ -10,7 +10,6 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Serve the React app with NGINX
-FROM nginx:alpine
 
 # Copy the build files from the previous stage to the NGINX HTML directory
 FROM nginx:alpine
