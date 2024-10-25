@@ -33,9 +33,9 @@ services:
     ports:
       - "3000:3000"
     command: >
-      sh -c "npm run build"
+      sh -c "npm start"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
     volumes:
       - ./react_frontend:/app
       - /app/node_modules
