@@ -33,7 +33,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - NODE_ENV=production
-      - REACT_APP_API_ADDRESS = 16.171.173.218:5000/api
+      - REACT_APP_API_ADDRESS=16.171.173.218:5000/api
     ports:
       - "80:80"  # Serve on port 80 for production
     volumes:

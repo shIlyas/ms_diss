@@ -334,7 +334,7 @@ def handle_rubric_responses(current_user, scenario_id):
         return jsonify({'message': f'Failed to process rubric responses: {str(e)}'}), 500
 
 
-from transformers import pipeline
+
 
 # Load the zero-shot classification pipeline with the BART model
 #classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
