@@ -337,8 +337,8 @@ def handle_rubric_responses(current_user, scenario_id):
 from transformers import pipeline
 
 # Load the zero-shot classification pipeline with the BART model
-classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
-
+#classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+"""
 @openai_assistant_bp.route('/scenarios/<int:scenario_id>/tag_evaluation', methods=['POST'])
 @token_required
 def handle_tag_evaluation(current_user, scenario_id):
@@ -428,7 +428,7 @@ def handle_tag_evaluation(current_user, scenario_id):
     except Exception as e:
         logger.error(f"Failed to process tag evaluation: {e}")
         return jsonify({'message': f'Failed to process tag evaluation: {str(e)}'}), 500
-"""
+
 def handle_tag_evaluation(current_user, scenario_id):
     data = request.get_json()
 
